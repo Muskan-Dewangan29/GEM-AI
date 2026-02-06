@@ -6,8 +6,6 @@ from PyPDF2 import PdfReader
 from docx import Document
 import pytesseract
 from PIL import Image
-import whisper
-from moviepy import VideoFileClip
 import tempfile
 
 load_dotenv()
@@ -18,8 +16,7 @@ app = Flask(__name__)
 # ✅ If you are on Windows, uncomment and set this path:
 # pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-# ✅ Load whisper model once (faster)
-whisper_model = whisper.load_model("base")
+
 
 
 @app.route("/", methods=["GET", "POST"])

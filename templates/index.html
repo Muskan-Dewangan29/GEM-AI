@@ -1,0 +1,280 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GenAI MCQ Generator Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    /* Navbar slide animation */
+    #topNav {
+        transform: translateY(-30px);
+        opacity: 0;
+        animation: navDrop 0.8s ease forwards;
+    }
+
+    @keyframes navDrop {
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Brand glow animation */
+    .navbar-brand {
+        animation: glowPulse 2.5s infinite ease-in-out;
+    }
+
+    @keyframes glowPulse {
+        0%, 100% { text-shadow: 0 0 0 rgba(255,255,255,0); }
+        50% { text-shadow: 0 0 12px rgba(255,255,255,0.35); }
+    }
+    </style>
+
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark px-4 py-3 shadow-sm" id="topNav" style="background: linear-gradient(90deg, #0f172a, #1e293b, #0b1324);">
+    <div class="d-flex flex-column">
+        <span class="navbar-brand fw-bold fs-4 mb-0">GEM AI</span>
+        <small class="text-light opacity-75" style="letter-spacing:0.3px;">
+            Generated Exam MCQs using AI
+        </small>
+    </div>
+    <span class="text-light small opacity-75">Upload • Generate • Learn</span>
+</nav>
+
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-4 rounded-4 border-0">
+        <h4>Generate MCQs</h4>
+        <form method="post" enctype="multipart/form-data" id="mcqForm">
+
+            <!-- Topic -->
+            <label class="form-label fw-semibold">Enter Topic (Optional)</label>
+            <input class="form-control mb-4" name="topic" placeholder="e.g. Computer Networks, AI, DBMS...">
+
+            <!-- Upload Section -->
+            <h6 class="fw-bold mb-3">Upload Any File</h6>
+
+            <div class="row g-3">
+
+                <!-- PDF -->
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-3 bg-white shadow-sm">
+                        <label class="form-label fw-semibold">📄 PDF</label>
+                        <input class="form-control" type="file" name="pdf_file" accept=".pdf">
+                        <small class="text-muted">Upload PDF for MCQs</small>
+                    </div>
+                </div>
+
+                <!-- TXT -->
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-3 bg-white shadow-sm">
+                        <label class="form-label fw-semibold">📝 TXT</label>
+                        <input class="form-control" type="file" name="txt_file" accept=".txt">
+                        <small class="text-muted">Upload text file</small>
+                    </div>
+                </div>
+
+                <!-- DOCX -->
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-3 bg-white shadow-sm">
+                        <label class="form-label fw-semibold">📑 DOCX</label>
+                        <input class="form-control" type="file" name="docx_file" accept=".docx">
+                        <small class="text-muted">Upload Word document</small>
+                    </div>
+                </div>
+
+                <!-- IMAGE -->
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-3 bg-white shadow-sm">
+                        <label class="form-label fw-semibold">🖼️ Image</label>
+                        <input class="form-control" type="file" name="image_file" accept="image/*">
+                        <small class="text-muted">OCR will extract text</small>
+                    </div>
+                </div>
+
+                <!-- AUDIO -->
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-3 bg-white shadow-sm">
+                        <label class="form-label fw-semibold">🎧 Audio</label>
+                        <input class="form-control" type="file" name="audio_file" accept="audio/*">
+                        <small class="text-muted">Whisper will transcribe</small>
+                    </div>
+                </div>
+
+                <!-- VIDEO -->
+                <div class="col-md-6">
+                    <div class="border rounded-4 p-3 bg-white shadow-sm">
+                        <label class="form-label fw-semibold">🎬 Video</label>
+                        <input class="form-control" type="file" name="video_file" accept="video/*">
+                        <small class="text-muted">Audio extracted → transcribed</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Settings -->
+            <hr class="my-4">
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Difficulty</label>
+                    <select class="form-control" name="difficulty">
+                        <option>Easy</option>
+                        <option>Medium</option>
+                        <option>Hard</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Number of Questions</label>
+                    <input class="form-control" name="count" type="number" value="5" min="1" max="50">
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="btn btn-dark w-100 mt-4 py-2 rounded-4 fw-semibold">
+                🚀 Generate MCQs
+            </button>
+
+        </form>
+
+    </div>
+
+    {% if mcqs %}
+    <div class="card shadow-lg p-4 mt-4 rounded-4 border-0">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold">Generated MCQs</h5>
+            <small class="text-muted">Click “Reveal Answer” under each question</small>
+        </div>
+
+        <!-- MCQs will be rendered here -->
+        <div id="mcqContainer" style="max-height: 70vh; overflow-y: auto;"></div>
+
+
+        <!-- Hidden raw text -->
+        <pre id="rawMcqs" style="display:none;">{{ mcqs }}</pre>
+
+    </div>
+    {% endif %}
+
+
+</div>
+<!-- Loading Overlay -->
+<div id="loadingScreen" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.85);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    color:white;
+    text-align:center;
+    padding:20px;
+">
+    <div class="spinner-border text-light mb-3" style="width:4rem;height:4rem;"></div>
+    <h4 class="fw-bold">Generating MCQs...</h4>
+    <p class="opacity-75 mb-0">GEM AI is analyzing your content ✨</p>
+</div>
+
+<script>
+    // Show loading animation when generating
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("mcqForm");
+        const loading = document.getElementById("loadingScreen");
+
+        if (form) {
+            form.addEventListener("submit", () => {
+                loading.style.display = "flex";
+            });
+        }
+    });
+
+    function renderMcqs() {
+        const raw = document.getElementById("rawMcqs");
+        const container = document.getElementById("mcqContainer");
+
+        if (!raw || !container) return;
+
+        const text = raw.innerText.trim();
+
+        // Split questions by Q1, Q2, Q3...
+        const parts = text.split(/\n(?=Q\d+\b)/g);
+
+        container.innerHTML = "";
+
+        parts.forEach((q, index) => {
+            q = q.trim();
+            if (!q) return;
+
+            // ✅ Skip non-question blocks like "Source used"
+            if (!/^Q\d+\b/i.test(q)) return;
+
+
+            // Extract Answer + Explanation block
+            let answerBlockMatch = q.match(/Answer:.*(\nExplanation:.*)?/is);
+            let answerText = answerBlockMatch ? answerBlockMatch[0].trim() : "Answer: Not found";
+
+            // Remove Answer + Explanation from question block
+            let questionText = q.replace(/Answer:.*(\nExplanation:.*)?/is, "").trim();
+
+
+            // Card UI
+            const card = document.createElement("div");
+            card.className = "bg-dark text-light p-4 rounded-4 mb-3";
+
+            card.innerHTML = `
+                <div style="white-space: pre-wrap; font-size: 15px;">${escapeHtml(questionText)}</div>
+
+                <button class="btn btn-outline-light btn-sm mt-3 rounded-4"
+                    onclick="toggleOneAnswer(${index})"
+                    id="btn-${index}">
+                    👁️ Reveal Answer
+                </button>
+
+                <div class="mt-3 p-3 rounded-4 bg-black"
+                    style="display:none; white-space: pre-wrap;"
+                    id="ans-${index}">
+                    ${escapeHtml(answerText)}
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+    }
+
+    // Toggle one answer only
+    function toggleOneAnswer(i) {
+        const ans = document.getElementById("ans-" + i);
+        const btn = document.getElementById("btn-" + i);
+
+        if (!ans || !btn) return;
+
+        if (ans.style.display === "none") {
+            ans.style.display = "block";
+            btn.innerText = "🙈 Hide Answer";
+        } else {
+            ans.style.display = "none";
+            btn.innerText = "👁️ Reveal Answer";
+        }
+    }
+
+    // Prevent HTML breaking if model returns < > etc.
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    // Auto render on load
+    document.addEventListener("DOMContentLoaded", renderMcqs);
+    </script>
+
+
+</body>
+</html>

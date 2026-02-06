@@ -66,28 +66,7 @@ def index():
             source_used = "Image (OCR)"
 
 
-        # ✅ AUDIO (Whisper)
-        elif audio_file and audio_file.filename != "":
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(audio_file.filename)[1]) as temp_audio:
-                audio_file.save(temp_audio.name)
-                result = whisper_model.transcribe(temp_audio.name)
-                extracted_text = result["text"]
-                source_used = "Audio (Whisper)"
-
-        # ✅ VIDEO (extract audio → Whisper)
-        elif video_file and video_file.filename != "":
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
-                video_file.save(temp_video.name)
-
-                clip = VideoFileClip(temp_video.name)
-                clip.close()
-
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
-                    clip.audio.write_audiofile(temp_audio.name, verbose=False, logger=None)
-
-                    result = whisper_model.transcribe(temp_audio.name)
-                    extracted_text = result["text"]
-                    source_used = "Video (Whisper)"
+        
 
         # ✅ LIMIT extracted text (prevents 413 error)
         extracted_text = extracted_text.strip()[:6000]

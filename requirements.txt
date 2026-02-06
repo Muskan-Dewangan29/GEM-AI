@@ -5,7 +5,4 @@ PyPDF2
 python-docx
 pytesseract
 Pillow
-openai-whisper
-moviepy
-ffmpeg-python
 gunicorn
